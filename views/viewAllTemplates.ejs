@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('partials/head.ejs') %>
+    <style>
+      .card {
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .gm {
+        margin-bottom: 2.5rem;
+      }
+      .grid-margin,
+      .purchase-popup {
+        margin: 2.5rem;
+      }
+
+      .card {
+        margin-left: -4px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .card-body {
+        padding: 20px;
+      }
+
+      .card-text {
+        margin-bottom: 10px;
+      }
+      /* New styles for improved UI/UX */
+      .filter-container {
+        margin-bottom: 20px;
+      }
+
+      .filter-container select {
+        margin-right: 10px;
+      }
+
+      .pagination-container {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      .pagination-container button {
+        margin: 0 5px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      .pagination-container button:hover {
+        background-color: #0056b3;
+      }
+
+      .pagination-container span {
+        font-weight: bold;
+        margin: 0 10px;
+      }
+    </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const apiUrl = `https://graph.facebook.com/v19.0/104022815935352/message_templates`;
+        const itemsPerPage = 10; // Display 10 items per page
+        let currentPage = 1;
+        let totalData = [];
+        const templateContainer = document.getElementById("templateContainer");
+        const pageSelect = document.getElementById("pageSelect");
+
+        async function fetchData(
+          page,
+          statusFilter = "APPROVED",
+          GroupFilter = "",
+          language = "en"
+        ) {
+          console.log(page, statusFilter, GroupFilter, language);
+          try {
+            let status = statusFilter === "ALL" ? "" : statusFilter;
+
+            let category = "";
+            switch (GroupFilter) {
+              case "UTILITY":
+                category = "UTILITY";
+                break;
+              case "MARKETING":
+                category = "MARKETING";
+                break;
+              case "AUTHENTICATION":
+                category = "AUTHENTICATION";
+                break;
+              default:
+                category = "";
+                break;
+            }
+
+            const response = await fetch(
+              `${apiUrl}?status=${status}&category=${category}&page=${page}&limit=${itemsPerPage}&language=${language}`,
+              {
+                headers: {
+                  Authorization: `Bearer EAAWqeZCMrJ6sBO7zUipLVLmnOdyF0ZBPcMyJC17gRmcZAZAnn3mMbRkvb19SFMiwvZCaIhuZAeB1C0QCrgfJK193Hav9kIDsKM5ZCvFAVkjgAkb57BOj2DWULJmEDvdxjpp01hpsznvZA7ZBVaO22QQdFjmfa0bggPndsH81BegAEgD8hSak3Pz8woVvPwLOMKAOnNLVEiDggLACVbaru`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+              totalData = data.data;
+              templateContainer.innerHTML = "";
+              totalData.forEach((item, index) => {
+                const card = document.createElement("div");
+                card.classList.add("col-lg-4", "grid-margin", "stretch-card");
+                card.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${item.name || "N/A"}</h5>
+                            <p class="card-text"><strong>Status:</strong> ${
+                              item.status || "N/A"
+                            }</p>
+                            <p class="card-text"><strong>Group:</strong> ${
+                              item.category || "N/A"
+                            }</p>
+                            <p class="card-text"><strong>Component Body Text:</strong> ${
+                              getBodyText(item) || "N/A"
+                            }</p>
+                            <p class="card-text"><strong>Language:</strong> ${
+                              item.language || "N/A"
+                            }</p>
+                        </div>
+                    </div>
+                `;
+                templateContainer.appendChild(card);
+              });
+              populatePageSelect();
+            } else {
+              console.error("No data found.");
+            }
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
+        }
+
+        function getBodyText(item) {
+          const bodyComponent = item.components.find(
+            (component) => component.type === "BODY"
+          );
+          return bodyComponent ? bodyComponent.text : null;
+        }
+
+        function populatePageSelect() {
+          const pageCount = Math.ceil(totalData.length / itemsPerPage);
+          pageSelect.innerHTML = "";
+          for (let i = 1; i <= pageCount; i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = `Page ${i}`;
+            pageSelect.appendChild(option);
+          }
+          pageSelect.value = currentPage;
+        }
+
+        document.getElementById("prevButton").addEventListener("click", () => {
+          if (currentPage > 1) {
+            currentPage--;
+            fetchData(currentPage);
+          }
+        });
+
+        document.getElementById("nextButton").addEventListener("click", () => {
+          const startIndex = (currentPage - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
+          if (endIndex < totalData.length) {
+            currentPage++;
+            fetchData(currentPage);
+          } else if (startIndex < totalData.length) {
+            currentPage++;
+            fetchData(currentPage);
+          }
+        });
+
+        pageSelect.addEventListener("change", () => {
+          currentPage = parseInt(pageSelect.value);
+          fetchData(currentPage);
+        });
+
+        async function applyFilter() {
+          const statusFilter = document.getElementById("statusFilter").value;
+          const GroupFilter = document.getElementById("GroupFilter").value;
+          const languageFilter =
+            document.getElementById("languageFilter").value; // Get language filter value
+          currentPage = 1;
+          console.log(
+            "hhhh",
+            currentPage,
+            statusFilter,
+            GroupFilter,
+            languageFilter
+          );
+          await fetchData(
+            currentPage,
+            statusFilter,
+            GroupFilter,
+            languageFilter
+          ); // Pass language filter value to fetchData
+        }
+        fetchData(currentPage);
+
+        // Apply CSS styles to the body tag
+        document.body.style.backgroundColor = "#f2f2f2"; // Example style
+        document.body.style.fontFamily = "Arial, sans-serif"; // Example style
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container-scroller">
+      <%- include('partials/navbar.ejs') %>
+      <div class="container-fluid page-body-wrapper">
+        <%- include('partials/sidebar.ejs') %>
+        <div class="main-panel">
+          <div class="content-wrapper">
+            <div class="page-header">
+              <h3 class="page-title">
+                <span
+                  class="page-title-icon bg-gradient-primary text-white me-2"
+                >
+                  <i class="mdi mdi-home"></i>
+                </span>
+                All Templates
+              </h3>
+            </div>
+            <div class="row">
+              <div class="col-lg-12 grid-margin stretch-card">
+                <div class="card">
+                  <div class="card-body">
+                    <label for="filterType">Select Filter Type</label>
+                    <div>
+                      <select id="statusFilter">
+                        <option value="">Select Status</option>
+                        <option value="APPROVED">Approved</option>
+                        <option value="REJECTED">Rejected</option>
+                        <option value="PENDING">Pending</option>
+                        <!-- Add more options as needed -->
+                      </select>
+                      <select id="GroupFilter">
+                        <option value="">Select Group</option>
+                        <option value="UTILITY">Utility</option>
+                        <option value="MARKETING">Marketing</option>
+                        <option value="AUTHENTICATION">Authentication</option>
+                      </select>
+
+                      <select id="languageFilter">
+                        <option value="">Select Language</option>
+                        <% Object.keys(languages).forEach(function(key) { %>
+                        <option value="<%= languages[key] %>">
+                          <%= key %>
+                        </option>
+                        <% }); %>
+                      </select>
+
+                      <div class="col-md-3">
+                        <button
+                          class="btn btn-primary mt-4"
+                          onclick="applyFilter()"
+                        >
+                          Apply Filter
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row" id="templateContainer">
+              <!-- Template cards will be inserted here -->
+            </div>
+            <div class="selectPageOptionAndPaging">
+              <select id="pageSelect"></select>
+            </div>
+            <div class="pagination-container" id="pagination">
+              <button class="button-12" id="prevButton">Previous</button>
+              <span id="pageInfo">Page 1</span>
+              <button class="button-12" id="nextButton">Next</button>
+            </div>
+          </div>
+          <%- include('partials/footer.ejs') %>
+        </div>
+      </div>
+    </div>
+
+    <%- include('partials/scripts.ejs') %>
+  </body>
+  <script>
+    const apiUrl = `https://graph.facebook.com/v19.0/104022815935352/message_templates`;
+    const itemsPerPage = 10; // Display 10 items per page
+    let currentPage = 1;
+    let totalData = [];
+    const templateContainer = document.getElementById("templateContainer");
+    const pageSelect = document.getElementById("pageSelect");
+    async function fetchData(
+      page,
+      statusFilter = "APPROVED",
+      GroupFilter = "",
+      language = "en"
+    ) {
+      console.log(page, statusFilter, GroupFilter, language);
+      try {
+        let status = statusFilter === "ALL" ? "" : statusFilter;
+
+        let category = "";
+        switch (GroupFilter) {
+          case "UTILITY":
+            category = "UTILITY";
+            break;
+          case "MARKETING":
+            category = "MARKETING";
+            break;
+          case "AUTHENTICATION":
+            category = "AUTHENTICATION";
+            break;
+          default:
+            category = "";
+            break;
+        }
+
+        const response = await fetch(
+          `${apiUrl}?status=${status}&category=${category}&page=${page}&limit=${itemsPerPage}&language=${language}`,
+          {
+            headers: {
+              Authorization: `Bearer EAAWqeZCMrJ6sBO7zUipLVLmnOdyF0ZBPcMyJC17gRmcZAZAnn3mMbRkvb19SFMiwvZCaIhuZAeB1C0QCrgfJK193Hav9kIDsKM5ZCvFAVkjgAkb57BOj2DWULJmEDvdxjpp01hpsznvZA7ZBVaO22QQdFjmfa0bggPndsH81BegAEgD8hSak3Pz8woVvPwLOMKAOnNLVEiDggLACVbaru`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.data && data.data.length > 0) {
+          totalData = data.data;
+          templateContainer.innerHTML = "";
+          totalData.forEach((item, index) => {
+            const card = document.createElement("div");
+            card.classList.add("col-lg-4", "grid-margin", "stretch-card", "gm");
+            card.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${item.name || "N/A"}</h5>
+                            <p class="card-text"><strong>Status:</strong> ${
+                              item.status || "N/A"
+                            }</p>
+                            <p class="card-text"><strong>Group:</strong> ${
+                              item.category || "N/A"
+                            }</p>
+                            <p class="card-text"><strong>Component Body Text:</strong> ${
+                              getBodyText(item) || "N/A"
+                            }</p>
+                            <p class="card-text"><strong>Language:</strong> ${
+                              item.language || "N/A"
+                            }</p>
+                        </div>
+                    </div>
+                `;
+            templateContainer.appendChild(card);
+          });
+          populatePageSelect();
+        } else {
+          console.error("No data found.");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    function getBodyText(item) {
+      const bodyComponent = item.components.find(
+        (component) => component.type === "BODY"
+      );
+      return bodyComponent ? bodyComponent.text : null;
+    }
+
+    function populatePageSelect() {
+      const pageCount = Math.ceil(totalData.length / itemsPerPage);
+      pageSelect.innerHTML = "";
+      for (let i = 1; i <= pageCount; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `Page ${i}`;
+        pageSelect.appendChild(option);
+      }
+      pageSelect.value = currentPage;
+    }
+
+    document.getElementById("prevButton").addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchData(currentPage);
+      }
+    });
+
+    document.getElementById("nextButton").addEventListener("click", () => {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      if (endIndex < totalData.length) {
+        currentPage++;
+        fetchData(currentPage);
+      } else if (startIndex < totalData.length) {
+        currentPage++;
+        fetchData(currentPage);
+      }
+    });
+
+    pageSelect.addEventListener("change", () => {
+      currentPage = parseInt(pageSelect.value);
+      fetchData(currentPage);
+    });
+
+    async function applyFilter() {
+      const statusFilter = document.getElementById("statusFilter").value;
+      const GroupFilter = document.getElementById("GroupFilter").value;
+      const languageFilter = document.getElementById("languageFilter").value; // Get language filter value
+      currentPage = 1;
+      console.log(
+        "hhhh",
+        currentPage,
+        statusFilter,
+        GroupFilter,
+        languageFilter
+      );
+      await fetchData(currentPage, statusFilter, GroupFilter, languageFilter); // Pass language filter value to fetchData
+    }
+    fetchData(currentPage);
+
+    // Apply CSS styles to the body tag
+    document.body.style.backgroundColor = "#f2f2f2"; // Example style
+    document.body.style.fontFamily = "Arial, sans-serif"; // Example style
+  </script>
+</html>

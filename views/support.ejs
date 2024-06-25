@@ -1,0 +1,480 @@
+
+<%- include('partials/head.ejs') %>
+
+<body>
+
+  <style>
+
+    /* CSS for centering the modal */
+.modal {
+  display: none; /* Hide the modal by default */
+  position: fixed; /* Position the modal relative to the viewport */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scrolling if needed */
+  background-color: rgba(0, 0, 0, 0.4); /* Black background with opacity */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered horizontally */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Set the width of the modal */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Styling for the ticket details */
+#ticketNumber {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#ticketContent,
+#ticketMessage {
+  margin-bottom: 10px;
+}
+
+/* Styling for the reply box */
+#replyBox {
+  border-top: 1px solid #ccc;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+
+#ticketReply {
+  font-style: italic;
+  color: #555;
+}
+
+/* Optional: Style for scrollbar */
+.modal-content {
+  overflow-y: auto;
+}
+
+/* Optional: Style for mobile responsiveness */
+@media only screen and (max-width: 768px) {
+  .modal-content {
+    width: 90%; /* Adjust width for smaller screens */
+    margin: 10% auto; /* Adjust margin for smaller screens */
+  }
+}
+
+
+
+
+    .parentContainerOfAllchild {
+      min-height: 100%;
+      background: white;
+    }
+  /* CSS for centering the modal */
+  .modal {
+    display: none; /* Hide the modal by default */
+    position: fixed; /* Position the modal relative to the viewport */
+
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scrolling if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black background with opacity */
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered horizontally */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Set the width of the modal */
+  }
+
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+    .buttonsSection {
+      justify-content: space-between;
+      display: flex;
+      flex-direction: row-reverse;
+    }
+
+    .buttonsSection a:hover {
+      color: white;
+    }
+
+    .buttonsSection a {
+      text-decoration: none;
+    }
+
+    .buttonsSection a {
+      background-color: #ffffff;
+    }
+
+    .table td {
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+      .status-pending {
+     background-color: #ed7c7c;
+    border: 1px solid;
+    border-radius: 13px;
+    padding: 6px;
+}
+
+  .status-approved {
+     background-color: #7cedc2;
+    border: 1px solid;
+    border-radius: 13px;
+    padding: 6px;
+}
+    .status-approved {
+      background-color: rgb(114, 214, 114);
+       border: 1px solid;
+    border-radius: 13px;
+    padding: 6px;
+    }
+
+.admin-message {
+  background-color: #7cedc2; /* Change this color to the desired background color for admin messages */
+  border: 1px solid;
+  border-radius: 13px;
+  padding: 6px;
+}
+.f
+{
+  font-size: larger;
+  width: bold;
+}
+/* Styling for user message */
+.user-message {
+  background-color: #ed7c7c; /* Change this color to the desired background color for user messages */
+  border: 1px solid;
+  border-radius: 13px;
+  padding: 6px;
+}
+  </style>
+
+  <div class="container-scroller">
+    <%- include('partials/navbar.ejs') %>
+    <div class="container-fluid page-body-wrapper">
+      <%- include('partials/sidebar.ejs') %>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="page-header">
+            <h3 class="page-title">
+              <span class="page-title-icon bg-gradient-primary text-white me-2">
+                <i class="mdi mdi-home"></i>
+              </span> Help & support
+            </h3>
+          </div>
+
+      <!-- Add Ticket Form -->
+          <div class="container">
+            <div class="jumbotron mt-5">
+              <div class="col-sm-8 mx-auto">
+                <h1 class="text-center">ADD TICKET</h1>
+              </div>
+              <form id="addTicketForm" action="/addtickets" method="POST" enctype="multipart/form-data">
+
+                <br>
+                <div>
+                  <label for="content" class="mx-3"><p>Content</p></label>
+                  <textarea id="content" name="content" class="mx-4" rows="2" placeholder="Enter content" required></textarea>
+                </div>
+                <br>
+                <div>
+                  <label for="messages" class="mx-3">Message</label>
+                  <textarea id="messages" name="messages" rows="2" class="mx-3" placeholder="Enter Message" required></textarea>
+                </div>
+                <br>
+
+                <!-- Button to add ticket -->
+                <div>
+                  <button type="submit" onclick="addTicket()" class="btn btn-primary">Add Ticket</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 6px;">
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+
+                  <h1></h1>
+
+                  <input type="search" style="float: right;" onkeyup="searchHere()" id="searchInput" name="q"
+                    placeholder="Search...." aria-label="Search">
+                  <div class="containPaginationINfo"></div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Ticket Number</th>
+      <th>Content</th>
+      <th>Message</th>
+      <th>Status</th>
+         <th>Created At</th>
+         <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+     <% supporthistory.forEach((subscription, index) => { %>
+
+<tr>
+  <!-- <td><%= subscription._id.toString().substr(-4).toUpperCase() %></td> -->
+  <!-- <td><%= (parseInt(subscription._id.toString().substr(-4)) + 1).toString().padStart(4, '0').toUpperCase() %></td> -->
+   <!-- <td><%= String(index + 1).padStart(4, '0') %></td> -->
+   <td class="ticket-number-cell"><%= String(index + 1).padStart(4, '0') %></td>
+
+  <td><%= subscription.content %></td>
+  <td><%= subscription.messages %></td>
+
+<td>
+  <% if (subscription.status === 0) { %>
+    <span id="status_<%= subscription._id %>" onclick="toggleStatus('<%= subscription._id %>')"   class="status-pending" >Pending</span>
+  <% } else if (subscription.status === 1) { %>
+    <span id="status_<%= subscription._id %>" onclick="toggleStatus('<%= subscription._id %>')" class="status-approved" >Approved</span>
+  <% } else { %>
+    <span>Unknown</span>
+  <% } %>
+</td>
+  <td><%= subscription.createdAt %></td>
+  <td style="width: 92px;">
+    <a href="#" onclick="toggleReply('<%= subscription._id %>')" style="text-decoration: none; color: rgb(15, 0, 0); background-color: #ffffff; padding: 5px; border-radius: 3px;">
+      <i class="fa fa-reply" aria-hidden="true"></i>
+    </a>
+    <div id="replyBox_<%= subscription._id %>" style="display: none;">
+      <textarea id="reply_<%= subscription._id %>" placeholder="Enter your reply" rows="2"></textarea>
+      <button onclick="sendReply('<%= subscription._id %>')">Send</button>
+    </div>
+
+    <a href="#" onclick="deleteSubscription('<%= subscription._id %>')" style="text-decoration: none; color: rgb(15, 0, 0); background-color: #ffffff; padding: 5px; border-radius: 3px;">
+      <i class="fa fa-trash" aria-hidden="true"></i>
+    </a>
+  </td>
+  <td>
+    <div id="replyDisplay_<%= subscription._id %>">
+      <% if (subscription.reply && subscription.reply !== 'no') { %>
+        <div class="chat-reply">
+          <div><strong>Reply:</strong></div>
+          <div><%= subscription.reply %></div>
+        </div>
+      <% } %>
+    </div>
+  </td>
+</tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<!-- Modal HTML -->
+
+<div id="ticketModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <p id="ticketNumber" hidden></p>
+    <p id="ticketContent" class="f"></p>
+    <p id="ticketMessage" class="user-message"></p>
+    <div id="replyBox">
+      <p id="ticketReply" class="admin-message"></p>
+    </div>
+  </div>
+</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <%- include('partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+
+  function openModal(ticketNumber,ticketId) {
+    var modal = document.getElementById("ticketModal");
+    var ticketNumberElement = document.getElementById("ticketNumber");
+  var ticketContentElement = document.getElementById("ticketContent");
+  var ticketMessageElement = document.getElementById("ticketMessage");
+ var ticketReplyElement = document.getElementById("ticketReply");
+
+    // Set the ticket number in the modal content
+    ticketNumberElement.textContent = "Ticket Number: " + ticketNumber;
+
+  // Find the corresponding row in the table
+  var rowIndex = parseInt(ticketNumber) - 1; // Adjusting for zero-based indexing
+  var tableRow = document.querySelectorAll(".table tbody tr")[rowIndex];
+
+  // Get the content and message from the row
+  var ticketContent = tableRow.querySelector("td:nth-child(2)").textContent;
+  var ticketMessage = tableRow.querySelector("td:nth-child(3)").textContent;
+  var ticketReply = tableRow.querySelector(".chat-reply div:nth-child(2)").textContent;
+  // Set the content and message in the modal
+  ticketContentElement.textContent = "Ticket : " + ticketContent;
+  ticketMessageElement.textContent = "User Message: " + ticketMessage;
+  ticketReplyElement.textContent = "Admin Reply: " + ticketReply;
+  // Display the modal
+  modal.style.display = "block";
+  }
+
+  // Function to close the modal
+  function closeModal() {
+    var modal = document.getElementById("ticketModal");
+    modal.style.display = "none";
+  }
+
+  // Add a click event listener to all ticket number cells
+  var ticketNumberCells = document.querySelectorAll(".ticket-number-cell");
+  ticketNumberCells.forEach(function(cell) {
+    cell.addEventListener("click", function() {
+      // Fetch the ticket number from the clicked row
+      var ticketNumber = cell.textContent.trim();
+
+      // Open the modal with the ticket number
+      openModal(ticketNumber);
+    });
+  });
+
+
+
+    // Function to add ticket
+    function addTicket() {
+      // Submit the form when the button is clicked
+      document.getElementById('addTicketForm').submit();
+    }
+
+    function deleteSubscription(subscriptionId) {
+      if (confirm("Are you sure you want to delete this subscription?")) {
+        fetch(`/helpsupport/${subscriptionId}`, { method: "DELETE" })
+          .then((response) => {
+            if (response.ok) {
+              // Subscription deleted successfully, remove from UI
+              document.getElementById(`deleteForm-${subscriptionId}`).parentNode.remove();
+            } else {
+              // Handle error
+              console.error("Failed to delete subscription");
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting subscription:", error);
+          });
+      }
+    }
+
+    function searchHere() {
+      var input, filter, table, tr, td, i;
+      input = document.getElementById("searchInput");
+      filter = input.value.toUpperCase();
+      table = document.querySelector(".table");
+      tr = table.getElementsByTagName("tr");
+      for (i = 0; i < tr.length; i++) {
+        var found = false;
+        for (var j = 0; j < tr[i].cells.length; j++) {
+          td = tr[i].cells[j];
+          if (td) {
+            if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+              found = true;
+            }
+          }
+        }
+        if (found) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("keyup", searchHere);
+
+function toggleReply(ticketId) {
+  var replyBox = document.getElementById("replyBox_" + ticketId);
+  replyBox.style.display = replyBox.style.display === "none" ? "block" : "none";
+}
+
+function sendReply(ticketId) {
+  console.log(ticketId);
+  var replyText = document.getElementById("reply_" + ticketId).value;
+console.log(replyText);
+  fetch(`/addreply/${ticketId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ reply: replyText }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log("Reply added successfully");
+      } else {
+        console.error("Failed to add reply");
+      }
+    })
+    .catch((error) => {
+      console.error("Error adding reply:", error);
+    });
+}
+
+function toggleStatus(ticketId) {
+  const statusSpan = document.getElementById("status_" + ticketId);
+  const currentStatus = statusSpan.innerText.trim();
+  let newStatus = "";
+
+  if (currentStatus === "Pending") {
+    newStatus = "Approved";
+  } else if (currentStatus === "Approved") {
+    newStatus = "Pending";
+  } else {
+    console.error("Unknown status:", currentStatus);
+    return;
+  }
+
+  statusSpan.classList.remove("status-pending");
+  statusSpan.classList.remove("status-approved");
+
+  if (newStatus === "Pending") {
+    statusSpan.classList.add("status-pending");
+  } else if (newStatus === "Approved") {
+    statusSpan.classList.add("status-approved");
+  }
+  statusSpan.innerText = newStatus;
+}
+
+  </script>
+
+  <%- include('partials/scripts.ejs') %>
+
+</body>
+
+</html>
