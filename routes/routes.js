@@ -85,7 +85,7 @@ router.get("/getMobileNumbers", async (req, res) => {
   }
 });
 
-router.get("/profile",auth, async (req, res) => {
+router.get("/profile", async (req, res) => {
   try {
     const UserId = req.user;
      console.log(`here is authenticated user  : ${UserId}`)
